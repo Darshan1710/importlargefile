@@ -2,17 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UploadModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
 use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Contracts\View\View;
-use League\Csv\Reader;
 use App\Jobs\ProcessImportJob;
+use Exception;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Log;
 
 class UploadController extends Controller
 {
@@ -25,17 +22,33 @@ class UploadController extends Controller
 
         $fileReceived = $receiver->receive(); // receive file
         if ($fileReceived->isFinished()) { // file uploading is complete / all chunks are uploaded
-            $file = $fileReceived->getFile(); // get file
-            $extension = $file->getClientOriginalExtension();
-            $fileName = str_replace('.'.$extension, '', $file->getClientOriginalName()); //file name without extenstion
-            $fileName .= '_' . md5(time()) . '.' . $extension; // a unique file name
-            $path = Storage::disk(config('filesystems.default'))->put('public/videos', $file);
-            ProcessImportJob::dispatch($path);
-            unlink($file->getPathname());
-            return [
-                'path' => asset('storage/' . $path),
-                'filename' => $fileName
-            ];
+            try {
+                $file = $fileReceived->getFile(); // get file
+                $extension = $file->getClientOriginalExtension();
+                $fileName = str_replace('.'.$extension, '', $file->getClientOriginalName()); //file name without extenstion
+                $fileName .= '_' . md5(time()) . '.' . $extension; // a unique file name
+                $path = Storage::disk(config('filesystems.default'))->put('public/videos', $file);
+                $csv    = file(storage_path('app/'.$path));
+                $headers = explode(',', array_shift($csv));
+                $headers = array_map(function ($name) {
+                    return trim(str_replace(' ', '_', $name));
+                }, $headers);
+
+                $chunks = array_chunk($csv, 1000);
+                $batch  = Bus::batch([])->dispatch();
+                foreach ($chunks as $chunk) {
+                    $data = array_map('str_getcsv', $chunk);
+                    $batch->add(new ProcessImportJob($data, $headers));
+                }
+
+                unlink($file->getPathname());
+                return [
+                    'path' => asset('storage/' . $path),
+                    'filename' => $fileName
+                ];
+            } catch(Exception $e) {
+                Log::error('An error occurred: ' . $e->getMessage());
+            }
         }
 
         // otherwise return percentage informatoin

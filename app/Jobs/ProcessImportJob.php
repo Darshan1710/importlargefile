@@ -9,6 +9,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Storage;
 use App\Models\UploadModel;
+use Illuminate\Bus\Batchable;
 
 class ProcessImportJob implements ShouldQueue
 {
@@ -16,40 +17,27 @@ class ProcessImportJob implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
+    use Batchable;
 
-    public $path;
+    public $data;
+    public $header;
+    public $result;
 
     // Giving a timeout of 20 minutes to the Job to process the file
     public $timeout = 1200;
 
-    public function __construct($path)
+    public function __construct($data, $header)
     {
-        $this->path = $path;
+        $this->result = [];
+        $this->data = $data;
+        $this->header = $header;
     }
 
     public function handle(): void
     {
-        $filePath = storage_path('app/'.$this->path);
-        $fileContents = file_get_contents($filePath);
-        $rows = explode("\n", $fileContents);
-        $csvData = array_map('str_getcsv', $rows);
-        $headers = array_shift($csvData);
-        $result = array_map(function($name) {
-            return str_replace(' ', '_', $name);
-        }, $headers);
-    
-        $chunks = array_chunk($csvData, 2);
-        
-        foreach ($chunks as $key => $chunk) {
-            $tempData = [];
-            foreach($chunk as $ch){
-                if(!empty($ch[0])) {
-                    $data = array_combine($result, $ch);
-                    array_push($tempData, $data);
-                }
-            }
-            UploadModel::insert($tempData);
+        foreach ($this->data as $item) {
+            $this->result[] = array_combine($this->header, $item);
         }
-
+        UploadModel::insert($this->result);
     }
 }
