@@ -1,83 +1,89 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div id="upload-container" class="text-center">
-                        <button id="csv_file" class="btn btn-primary">Browse File</button>
-                </div>
-                <div class="mt-3 mb-3">
-                <div class="progress mt-3" style="height: 25px">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%; height: 100%">75%</div>
-                    </div>
-                </div>
-                </div>
-            </div>
-        </div>
+  <x-slot name="header">
+    <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+      {{ __('Dashboard') }}
+    </h2>
+  </x-slot>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
+  <link href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+  <div class="py-12">
+    <div class="container mt-5">
+      <h2 class="mb-4">Employee Table</h2>
+      <a class="btn btn-primary" href="{{ route('uploadForm') }}">Import File</a>
+      <table id="myTable" class="table table-bordered">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Employee ID</th>
+            <th>Name</th>
+            <th>Domain</th>
+            <th>Year Founded</th>
+            <th>Industry</th>
+            <th>Size range</th>
+            <th>Locality</th>
+            <th>Country</th>
+            <th>Linkedin URL</th>
+            <th>Current Employee Estimate</th>
+            <th>Total Employee Estimate</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-<!-- Resumable JS -->
-<script src="https://cdn.jsdelivr.net/npm/resumablejs@1.1.0/resumable.min.js"></script>
-
-<script type="text/javascript">
-    let csv_file = $('#csv_file');
-    let resumable = new Resumable({
-        target: '/upload',
-        query:{_token:'{{ csrf_token() }}'} ,// CSRF token
-        fileType: ['csv'],
-        headers: {
-            'Accept' : 'application/json'
-        },
-        testChunks: false,
-        throttleProgressCallbacks: 1,
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.js"></script>
+  <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      var table = $('#myTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('dashboard') }}",
+        columns: [{
+          data: 'DT_RowIndex',
+          name: 'DT_RowIndex'
+        }, {
+          data: 'employee_id',
+          name: 'employee_id'
+        }, {
+          data: 'name',
+          name: 'name'
+        }, {
+          data: 'domain',
+          name: 'domain'
+        }, {
+          data: 'year_founded',
+          name: 'year_founded'
+        }, {
+          data: 'industry',
+          name: 'industry'
+        }, {
+          data: 'size_range',
+          name: 'size_range'
+        }, {
+          data: 'locality',
+          name: 'locality'
+        }, {
+          data: 'country',
+          name: 'country'
+        }, {
+          data: 'linkedin_url',
+          name: 'linkedin_url'
+        }, {
+          data: 'current_employee_estimate',
+          name: 'current_employee_estimate'
+        }, {
+          data: 'total_employee_estimate',
+          name: 'total_employee_estimate'
+        }]
+      });
     });
-
-    resumable.assignBrowse(csv_file[0]);
-
-    resumable.on('fileAdded', function (file) { // trigger when file picked
-        showProgress();
-        resumable.upload() // to actually start uploading.
-    });
-
-    resumable.on('fileProgress', function (file) { // trigger when file progress update
-        updateProgress(Math.floor(file.progress() * 100));
-    });
-
-    resumable.on('fileSuccess', function (file, response) { // trigger when file upload complete
-        response = JSON.parse(response)
-        alert('File uploaded succesfully');
-    });
-
-    resumable.on('fileError', function (file, response) { // trigger when there is any error
-        alert('file uploading error.')
-    });
-
-
-    let progress = $('.progress');
-    function showProgress() {
-        progress.find('.progress-bar').css('width', '0%');
-        progress.find('.progress-bar').html('0%');
-        progress.find('.progress-bar').removeClass('bg-success');
-        progress.show();
-    }
-
-    function updateProgress(value) {
-        progress.find('.progress-bar').css('width', `${value}%`)
-        progress.find('.progress-bar').html(`${value}%`)
-    }
-
-    function hideProgress() {
-        progress.hide();
-    }
-</script>
-</body>
-</html>
-
+  </script>
+  </body>
+  </html>
 </x-app-layout>
