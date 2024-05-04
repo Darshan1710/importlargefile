@@ -6,18 +6,22 @@
     </x-slot>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="container">
+        <nav class="navbar navbar-dark bg-dark mb-1 d-block">
                 <div id="upload-container" class="text-center">
-                        <button id="csv_file" class="btn btn-primary">Browse File</button>
+                        <h4 class="text-white">Import Employee Details</h4>
+                        <button id="csv_file" class="btn btn-secondary">Browse File</button><br>
+                        <small class="text-white">Please choose file to upload</small>
                 </div>
+                <br/>
                 <div class="mt-3 mb-3">
-                <div class="progress mt-3" style="height: 25px">
+                    <div class="progress mt-3" style="height: 25px">
                         <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%; height: 100%">0%</div>
                     </div>
                 </div>
-                </div>
-            </div>
+                
+        </nav>
+        </div>
         </div>
     </div>
     <!-- jQuery -->
@@ -53,6 +57,7 @@
     resumable.on('fileSuccess', function (file, response) {
         response = JSON.parse(response)
         alert('File uploaded succesfully');
+        window.location.href = '/dashboard';
     });
 
     resumable.on('fileError', function (file, response) { // trigger when there is any error

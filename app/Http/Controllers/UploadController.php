@@ -26,7 +26,7 @@ class UploadController extends Controller
 
     public function list(Request $request){
         if($request->ajax()){
-            $data = UploadModel::select('employee_id','name','domain','year_founded','industry','size_range','locality','country','linkedin_url','current_employee_estimate','total_employee_estimate')->limit(100000)->get();
+            $data = UploadModel::select('employee_id','name','domain','year_founded','industry','country')->latest()->get();
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->make(true);

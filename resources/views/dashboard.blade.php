@@ -8,8 +8,46 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
   <link href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" rel="stylesheet">
   <link href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+  <style>
+    table.dataTable tbody tr {
+    background-color: #343a40;
+}
+table.dataTable thead .sorting,
+table.dataTable thead .sorting_asc {
+    background-image: none;
+}
+.page-item.active .page-link {
+    background-color: #343a40;
+    border-color: #343a40;
+}
+.page-link {
+    color: #343a40;
+}
+  </style>
   <div class="py-12">
-    <div class="container mt-5">
+    <div class="container" style="max-width:1240px;">
+    <nav class="navbar navbar-dark bg-dark mb-1">
+      <h5 class="text-white">Employee</h5>
+    <a class="btn btn-secondary" href="{{ route('uploadForm') }}">Import File</a>
+   </nav>
+  <table class="table table-dark" id="myTable">
+  <thead>
+    <tr>
+    <th>No</th>
+    <th>Employee ID</th>
+    <th>Name</th>
+    <th>Domain</th>
+    <th>Year Founded</th>
+    <th>Industry</th>
+    <th>Country</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+  </tbody>
+</table>
+    </div>
+    <!-- <div class="container mt-5">
       <h2 class="mb-4">Employee Table</h2>
       <a class="btn btn-primary" href="{{ route('uploadForm') }}">Import File</a>
       <table id="myTable" class="table table-bordered">
@@ -31,7 +69,7 @@
         </thead>
         <tbody></tbody>
       </table>
-    </div>
+    </div> -->
   </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.js"></script>
@@ -43,6 +81,7 @@
       var table = $('#myTable').DataTable({
         processing: true,
         serverSide: true,
+        paging: true,
         ajax: "{{ route('dashboard') }}",
         columns: [{
           data: 'DT_RowIndex',
@@ -62,24 +101,10 @@
         }, {
           data: 'industry',
           name: 'industry'
-        }, {
-          data: 'size_range',
-          name: 'size_range'
-        }, {
-          data: 'locality',
-          name: 'locality'
-        }, {
+        },
+        {
           data: 'country',
           name: 'country'
-        }, {
-          data: 'linkedin_url',
-          name: 'linkedin_url'
-        }, {
-          data: 'current_employee_estimate',
-          name: 'current_employee_estimate'
-        }, {
-          data: 'total_employee_estimate',
-          name: 'total_employee_estimate'
         }]
       });
     });
